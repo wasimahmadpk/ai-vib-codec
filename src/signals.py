@@ -1,4 +1,4 @@
-"""Load a subset of the turbine vibration file and measure a segment."""
+"""Load turbine vibration recordings and measure a segment."""
 
 from __future__ import annotations
 
@@ -9,8 +9,11 @@ import numpy as np
 
 URL = "https://api.researchdata.se/dataset/2024-248/1/file/data/DATASET02.csv"
 FS = 12_800
+N_SAMPLES = 16_384
 CHUNK = 2_000_000
 CACHE = Path("data/dataset02.npz")
+FULL_CACHE = Path("data/dataset02_f32.npz")
+CSV_PATH = Path("data/DATASET02.csv")
 
 
 def csv_size(url: str) -> int:
@@ -96,6 +99,64 @@ def load_subset(cache: Path = CACHE):
     )
     print(f"wrote {cache}")
     return years, rpm, samples, text_bytes, file_size
+
+
+def load_arrays(path: Path = CACHE):
+    """Return years, rpm, and the vibration matrix from a local cache."""
+    stored = np.load(path)
+    years = np.asarray(stored["years"])
+    rpm = np.asarray(stored["rpm"])
+    signal = np.asarray(stored["signal"])
+    print(f"loaded {path} ({signal.shape[0]} segments)")
+    return years, rpm, signal
+
+
+def load_full(cache: Path = FULL_CACHE, csv_path: Path = CSV_PATH):
+    """Return every DATASET02 recording as years, rpm, and float32 samples."""
+    if cache.exists():
+        return load_arrays(cache)
+    if not csv_path.exists():
+        raise FileNotFoundError(csv_path)
+
+    with csv_path.open("rb") as handle:
+        n = sum(1 for line in handle if line.strip())
+    years = np.empty(n, dtype=np.float64)
+    rpm = np.empty(n, dtype=np.float64)
+    signal = np.empty((n, N_SAMPLES), dtype=np.float32)
+    i = 0
+    with csv_path.open("rb") as handle:
+        for line in handle:
+            line = line.strip()
+            if not line:
+                continue
+            t_txt, rpm_txt, rest = line.decode("ascii").split(",", 2)
+            samples = np.fromstring(rest, sep=",", dtype=np.float32)
+            if samples.size != N_SAMPLES:
+                raise ValueError(f"row {i} has {samples.size} samples")
+            years[i] = float(t_txt)
+            rpm[i] = float(rpm_txt)
+            signal[i] = samples
+            if i % 500 == 0:
+                print(f"parsed {i:,} / {n:,}", flush=True)
+            i += 1
+    if i != n:
+        raise RuntimeError(f"parsed {i} rows, expected {n}")
+
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(cache, years=years, rpm=rpm, signal=signal)
+    print(f"wrote {cache} ({n} segments)")
+    return years, rpm, signal
+
+
+def split_by_time(years: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return 70/15/15 recording indices in chronological order."""
+    order = np.argsort(years)
+    n_train = int(0.70 * len(order))
+    n_validation = max(1, int(0.15 * len(order)))
+    train = order[:n_train]
+    validation = order[n_train:n_train + n_validation]
+    test = order[n_train + n_validation:]
+    return train, validation, test
 
 
 def row_stats(x: np.ndarray) -> dict[str, float]:
