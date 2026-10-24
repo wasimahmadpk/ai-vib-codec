@@ -2,7 +2,7 @@
 
 AI compression of vibration signals.
 
-Start with `data_analysis.ipynb`. The Python code lives in `src/`. Loading and the segment measurements are in `src/signals.py`. The notebook calls those and plots a small subset of the LTU wind-turbine set.
+Start with `notebooks/data_analysis.ipynb`. The Python code lives in `src/`. Loading and the segment measurements are in `src/signals.py`. The notebook calls those and plots a small subset of the LTU wind-turbine set.
 
 ## Classical baselines
 
