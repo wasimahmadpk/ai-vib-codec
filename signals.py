@@ -121,6 +121,43 @@ def spectrum(x: np.ndarray, fs: float) -> tuple[np.ndarray, np.ndarray]:
     return freq, amp
 
 
+def shake_parts(
+    x: np.ndarray,
+    fs: float = FS,
+    n_parts: int = 3,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Return the strongest separated shakes as sine waves."""
+    w = np.hanning(len(x))
+    fft = np.fft.rfft(x * w)
+    freq = np.fft.rfftfreq(len(x), d=1.0 / fs)
+    amp = np.abs(fft) * 2.0 / w.sum()
+    phase = np.angle(fft)
+
+    band = np.flatnonzero((freq >= 40) & (freq <= 2500))
+    peaks = [
+        i for i in band[2:-2]
+        if amp[i] > amp[i - 1]
+        and amp[i] > amp[i + 1]
+        and amp[i] > amp[i - 2]
+        and amp[i] > amp[i + 2]
+    ]
+    peaks.sort(key=lambda i: amp[i], reverse=True)
+
+    chosen = []
+    for i in peaks:
+        if all(abs(freq[i] - freq[j]) > 30 for j in chosen):
+            chosen.append(i)
+        if len(chosen) == n_parts:
+            break
+
+    t = np.arange(len(x)) / fs
+    parts = np.array([
+        amp[i] * np.cos(2 * np.pi * freq[i] * t + phase[i])
+        for i in chosen
+    ])
+    return freq[chosen], parts
+
+
 def main_peak(x: np.ndarray, speed: float) -> tuple[float, float]:
     """Loudest line above 40 Hz, as Hz and as a shaft order."""
     freq, amp = spectrum(x, FS)
