@@ -10,8 +10,8 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from autoencoder import BLOCK, CODE_TIME, Autoencoder, loss_terms, open_codec, save_codec
-from signals import load_full, split_by_time
+from autoencoder import BLOCK, GEAR_ORDER, SIDE, Autoencoder, loss_terms, open_codec, save_codec, strip_recording
+from signals import load_full, main_peak, split_by_time
 
 
 class Blocks(Dataset):
@@ -126,6 +126,9 @@ def measure_test(codec, signal, rpm, test_idx):
     peaks = []
     encode_times = []
     decode_times = []
+    recovered = []
+    rms_error = []
+    peak_hz = []
     for index in test_idx:
         recording = np.asarray(signal[index], dtype=np.float32)
         speed = float(rpm[index])
@@ -151,33 +154,135 @@ def measure_test(codec, signal, rpm, test_idx):
         peaks.append(float(np.max(np.abs(error))))
         encode_times.append(encode_seconds)
         decode_times.append(decode_seconds)
-    return (
-        np.asarray(sizes),
-        np.asarray(rmses),
-        np.asarray(snrs),
-        np.asarray(peaks),
-        np.asarray(encode_times),
-        np.asarray(decode_times),
-    )
+        recovered.append(100.0 * (1.0 - noise / power))
+        original_rms = float(np.sqrt(power))
+        restored_rms = float(np.sqrt(np.mean(restored ** 2)))
+        rms_error.append(abs(restored_rms - original_rms) / original_rms)
+        original_hz, _order = main_peak(recording, speed)
+        restored_hz, _order = main_peak(restored, speed)
+        peak_hz.append(abs(restored_hz - original_hz))
+    return {
+        "sizes": np.asarray(sizes),
+        "rmses": np.asarray(rmses),
+        "snrs": np.asarray(snrs),
+        "peaks": np.asarray(peaks),
+        "encode_times": np.asarray(encode_times),
+        "decode_times": np.asarray(decode_times),
+        "recovered": np.asarray(recovered),
+        "rms_error": np.asarray(rms_error),
+        "peak_hz": np.asarray(peak_hz),
+    }
+
+
+def _recording_scores(original: np.ndarray, restored: np.ndarray, speed: float) -> dict[str, float]:
+    error = restored - original
+    power = float(np.mean(original ** 2))
+    noise = float(np.mean(error ** 2))
+    original_hz, _order = main_peak(original, speed)
+    restored_hz, _order = main_peak(restored, speed)
+    original_rms = float(np.sqrt(power))
+    restored_rms = float(np.sqrt(np.mean(restored ** 2)))
+    return {
+        "rmse": float(np.sqrt(noise)),
+        "snr": float(10.0 * np.log10(power / noise)),
+        "recovered": 100.0 * (1.0 - noise / power),
+        "rms_error": abs(restored_rms - original_rms) / original_rms,
+        "peak_hz": abs(restored_hz - original_hz),
+    }
+
+
+def compare_rounding(path: Path, device: torch.device) -> None:
+    """Compare the trained code before and after int8 rounding."""
+    codec = open_codec(path, device)
+    model = codec.model.to(device)
+    model.eval()
+    years, rpm, signal = load_full()
+    signal = np.asarray(signal, dtype=np.float32)
+    _train, _validation, test_idx = split_by_time(years)
+    n_blocks = signal.shape[1] // BLOCK
+    names = ("float code", "int8 code")
+    totals = {name: [] for name in names}
+
+    with torch.inference_mode():
+        for index in test_idx:
+            row = np.asarray(signal[index], dtype=np.float32)
+            speed = float(rpm[index])
+            normalized = ((row - np.float32(codec.mean)) / np.float32(codec.std)).astype(np.float32)
+            samples = torch.from_numpy(normalized.reshape(n_blocks, BLOCK)).to(device)
+            rpm_code = np.float32((speed - codec.rpm_mean) / codec.rpm_std)
+            shaft = torch.full((n_blocks,), rpm_code, dtype=torch.float32, device=device)
+            raw = model.encoder(samples, shaft)
+            continuous = torch.tanh(raw)
+            _levels, rounded = model.quantize(raw)
+            versions = {
+                "float code": model.decoder(continuous, shaft),
+                "int8 code": model.decoder(rounded, shaft),
+            }
+            for name, restored in versions.items():
+                values = restored.detach().cpu().numpy().reshape(-1)
+                values = (values * codec.std + codec.mean).astype(np.float32)
+                totals[name].append(_recording_scores(row, values, speed))
+
+    print(f"rounding check on {path}")
+    print(f"{len(test_idx)} test recordings, {model.code_channels * model.code_time} code values")
+    for name in names:
+        rows = totals[name]
+        rmse = np.array([item["rmse"] for item in rows])
+        snr = np.array([item["snr"] for item in rows])
+        recovered = np.array([item["recovered"] for item in rows])
+        rms_error = np.array([item["rms_error"] for item in rows])
+        peak_hz = np.array([item["peak_hz"] for item in rows])
+        print(
+            f"{name:12s}  RMSE {rmse.mean():.4f} g  "
+            f"SNR {snr.mean():.2f} dB  "
+            f"energy {recovered.mean():.1f}%  "
+            f"RMS error {100.0 * rms_error.mean():.1f}%  "
+            f"main peak {peak_hz.mean():.1f} Hz"
+        )
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--code-channels", type=int, default=32)
+    parser.add_argument("--code-time", type=int, default=8)
+    parser.add_argument("--quant-check", type=Path)
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--patience", type=int, default=6)
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument(
+        "--side-info",
+        action="store_true",
+        help="store the order-35 tone and a shock window in each packet",
+    )
+    parser.add_argument("--shock-window", type=int, default=1)
+    parser.add_argument(
+        "--pack-code",
+        action="store_true",
+        help="zlib the int8 code; the samples that come back stay the same",
+    )
     args = parser.parse_args()
 
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
     device = pick_device()
+    if args.quant_check is not None:
+        compare_rounding(args.quant_check, device)
+        return
     years, rpm, signal = load_full()
     if signal.shape[1] % BLOCK:
         raise ValueError("recording length must be divisible by the block size")
     signal = np.asarray(signal, dtype=np.float32)
     train_idx, val_idx, test_idx = split_by_time(years)
+    raw = signal
+    if args.side_info:
+        signal = raw.copy()
+        for index in np.concatenate([train_idx, val_idx]):
+            signal[index] = strip_recording(raw[index], float(rpm[index]), args.shock_window)
+        print(
+            f"side info on: order {GEAR_ORDER} tone and {args.shock_window} shock samples, "
+            f"packed code {args.pack_code}"
+        )
 
     mean = float(signal[train_idx].mean())
     std = float(signal[train_idx].std())
@@ -208,10 +313,15 @@ def main() -> None:
     )
     val_loader = DataLoader(val_blocks, batch_size=args.batch_size)
 
-    model = Autoencoder(args.code_channels).to(device)
+    model = Autoencoder(args.code_channels, args.code_time).to(device)
     n_weights = sum(item.numel() for item in model.parameters())
-    code_values = args.code_channels * CODE_TIME
-    print(f"encoder+decoder {n_weights:,} weights, code {code_values} int8 values")
+    encoder_bytes = sum(item.numel() * item.element_size() for item in model.encoder.parameters())
+    code_values = args.code_channels * args.code_time
+    print(
+        f"encoder+decoder {n_weights:,} weights, "
+        f"encoder {encoder_bytes / 1024:.1f} KiB, "
+        f"code {code_values} int8 values over {args.code_time} steps"
+    )
 
     before = perf_counter()
     best_rmse, _spec_weight = train(
@@ -227,14 +337,36 @@ def main() -> None:
     print(f"best validation RMSE {best_rmse:.4f} g after {train_seconds:.1f} s")
 
     model.to("cpu")
-    path = Path(f"data/ae_{code_values}.pt")
-    save_codec(path, model, mean, std, rpm_mean, rpm_std)
+    suffix = ""
+    if args.pack_code:
+        suffix = "_pack"
+    elif args.side_info:
+        suffix = "_side"
+    path = Path(f"data/ae_{code_values}{suffix}.pt")
+    save_codec(
+        path,
+        model,
+        mean,
+        std,
+        rpm_mean,
+        rpm_std,
+        side_info=args.side_info,
+        window=args.shock_window,
+        compress_code=args.pack_code,
+    )
     codec = open_codec(path)
     print(f"wrote {path}")
 
-    sizes, rmses, snrs, peaks, encode_times, decode_times = measure_test(
-        codec, signal, rpm, test_idx,
-    )
+    measured = measure_test(codec, raw, rpm, test_idx)
+    sizes = measured["sizes"]
+    rmses = measured["rmses"]
+    snrs = measured["snrs"]
+    peaks = measured["peaks"]
+    encode_times = measured["encode_times"]
+    decode_times = measured["decode_times"]
+    recovered = measured["recovered"]
+    rms_error = measured["rms_error"]
+    peak_hz = measured["peak_hz"]
     n_samples = signal.shape[1]
     raw_int16 = n_samples * 2
     raw_float32 = n_samples * 4
@@ -249,6 +381,9 @@ def main() -> None:
     print(f"RMSE               {rmses.mean():6.4f} ± {rmses.std(ddof=1):.4f} g")
     print(f"SNR                {snrs.mean():6.2f} ± {snrs.std(ddof=1):.2f} dB")
     print(f"peak error         {peaks.mean():6.3f} ± {peaks.std(ddof=1):.3f} g")
+    print(f"energy recovered   {recovered.mean():6.1f} ± {recovered.std(ddof=1):.1f}%")
+    print(f"RMS error          {100.0 * rms_error.mean():6.1f} ± {100.0 * rms_error.std(ddof=1):.1f}%")
+    print(f"main-peak error    {peak_hz.mean():6.1f} ± {peak_hz.std(ddof=1):.1f} Hz")
     print(f"encode             {1e3 * encode_times.mean():6.2f} ms")
     print(f"decode             {1e3 * decode_times.mean():6.2f} ms")
 

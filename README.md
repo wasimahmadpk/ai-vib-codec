@@ -1,50 +1,36 @@
 # ai-vib-codec
 
-AI compression of vibration signals.
+Lossy compression of one-second wind-turbine vibration, with exact codecs as the comparison.
 
-Start with `notebooks/data_analysis.ipynb`. The Python code lives in `src/`. Loading and the segment measurements are in `src/signals.py`. The notebook calls those and plots a small subset of the LTU wind-turbine set.
+`DATASET02` (LTU, DOI 10.5878/bcmv-wq08): 2,982 recordings, 16,384 samples at 12.8 kHz, acceleration in g plus shaft speed. Split by time, oldest first: 2,087 train, 447 validation, 448 test. A recording is never cut in half. The integer codecs round each sample to 0.001 g. That rounding is 0.000289 g RMSE, and they then restore every count.
 
-## Classical baselines
+Code is in `src/`. The notebook `notebooks/data_analysis.ipynb` is a small look at the file. `data/` and `results/` stay off git.
 
-The dataset contains acceleration in decimal g rather than original ADC integers. The integer baselines use one fixed representation: one int16 count is `0.001 g`. This adds at most `0.0005 g` rounding error and requires no scale in each packet. Every codec then recovers those int16 values exactly.
+## Chosen codec
 
-Run the lossless baselines with:
+The pipeline keeps one autoencoder: 2,048 int8 values (16 channels by 128 steps), zlib-packed, plus 8 bytes per block for the order-35 tone and the single largest sample. The encoder is a small 1D conv, 18 KiB, and is the piece that runs at the edge. Shaft speed and the weights are shared, so they are not in the packet. An old packet needs this same model.
+
+On the 448 test recordings it removes **59.0%** of the int16 file (6.56 bits/sample) and returns **99.7%** of the energy. RMSE is 0.033 g. The loudest tone is exact. Sharp peaks are still about 0.7 g off.
+
+```bash
+.venv/bin/python src/run_autoencoder.py --code-channels 16 --code-time 128 --side-info --pack-code
+```
+
+## Why not the others
+
+Same 448 recordings. Removed is versus the int16 file. Energy recovered is the share of the recording that comes back. 0% is silence.
+
+| Method | Removed | Energy back |
+|---|---:|---:|
+| Rice, best exact codec | 28.3% | 100% |
+| Autoencoder, 512 values | 87.3% | 82% |
+| Autoencoder, 256 values | 93.6% | 69% |
+| Autoencoder, 64 values | 98.2% | 46% |
+| Autoencoder, 16 values | 99.4% | none |
+| **Autoencoder, 2048 packed** | **59.0%** | **99.7%** |
+
+The other exact codecs (zlib, delta, AR4, a tiny MLP) remove 15–19% and return every count. Shorter autoencoder codes are smaller files and worse recordings. Rice is the comparison when the counts have to come back exactly.
 
 ```bash
 .venv/bin/python src/run_baseline.py --data data/dataset02_f32.npz
 ```
-
-`DATASET02.csv` has 2,982 recordings. The script keeps them in time order: 2,087 train, 447 validation, 448 test. The shared MLP is trained on the first part. Every method is measured on the same later recordings. Packets use 2,048-sample blocks, and their headers count toward the size.
-
-On that test split, percent of int16 bytes removed:
-
-- `zlib(raw)`: `15.2 ± 5.4%` (13.56 bits/sample)
-- `zlib(delta)`: `18.0 ± 5.2%` (13.12 bits/sample)
-- `zlib(AR4)`: `18.5 ± 4.8%` (13.05 bits/sample)
-- `zlib(MLP)`: `18.3 ± 4.4%` (13.08 bits/sample)
-- `Rice(harmonic)`: `28.3 ± 6.3%` (11.47 bits/sample)
-
-These codecs recover the int16 counts exactly. Rounding to millig costs `0.000289 g` RMSE on the whole file. `zlib(raw float32)` is a separate reference: it removes `22.7 ± 8.4%` of the float32 bytes (24.75 bits/sample) and keeps those float32 values exact.
-
-## Lossy autoencoder
-
-`src/autoencoder.py` is the proposed compressor. Each block of 2,048 samples, plus the shaft speed, goes through a small 1D convolutional encoder. The packet is an int8 code. A decoder on the other side rebuilds the block. The shaft speed and the weights are shared, so they are not stored again in each packet. Training uses waveform error plus spectrum error. The spectrum term is not part of the packet.
-
-```bash
-.venv/bin/python src/run_autoencoder.py --code-channels 32
-```
-
-The same 2,087 / 447 / 448 split is used. Three code sizes, measured on the 448 held-out recordings:
-
-- 16 int8 values: `99.41%` smaller than int16, `0.94 g` RMSE, `-0.3 dB` SNR
-- 64 int8 values: `98.24%` smaller, `0.58 g` RMSE, `3.1 dB` SNR
-- 256 int8 values: `93.55%` smaller, `0.42 g` RMSE, `5.7 dB` SNR
-
-Recovery below is the share of the recording's energy that comes back. `100%` means the waveform returns. `0%` means it does not. The 16-value code returns `-8.6%`, which is worse than silence, so that counts as no recovery.
-
-- Rice: `28.3%` smaller, `100.0%` recovered (`0.0001%` lost to millig rounding)
-- 256 int8 values: `93.6%` smaller, `69.5%` recovered
-- 64 int8 values: `98.2%` smaller, `45.9%` recovered
-- 16 int8 values: `99.4%` smaller, `0%` recovered
-
-Encode and decode of one recording take about `1 ms`.
