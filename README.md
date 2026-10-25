@@ -4,7 +4,7 @@ Lossy compression of one-second wind-turbine vibration, with exact codecs as the
 
 `DATASET02` (LTU, DOI 10.5878/bcmv-wq08): 2,982 recordings, 16,384 samples at 12.8 kHz, acceleration in g plus shaft speed. Split by time, oldest first: 2,087 train, 447 validation, 448 test. A recording is never cut in half. The integer codecs round each sample to 0.001 g. That rounding is 0.000289 g RMSE, and they then restore every count.
 
-Code is in `src/`. The notebook `notebooks/data_analysis.ipynb` is a small look at the file. `data/` and `results/` stay off git.
+Code is in `src/`. `notebooks/turbine_eda.ipynb` looks at the Luleå wind-turbine file. `notebooks/cwru_eda.ipynb` looks at the lab-motor bearing set. `data/` and `results/` stay off git.
 
 ## Chosen codec
 
