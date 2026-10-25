@@ -24,20 +24,93 @@ The CWRU 2048-value model is a separate training run, so a quiet block counts as
 
 Same methods on both sets. Removed is versus the int16 file. Energy recovered is the share of the recording that comes back. 0% is silence. Fault place is how many of the five held-out CWRU files are still named. The 4/5 miss is the healthy file.
 
-| Dataset | Method | Removed | Energy back | Fault place |
-|---|---|---:|---:|---:|
-| Wind turbine | Rice, best exact codec | 28.3% | 100% | — |
-| Wind turbine | Autoencoder, 512 values | 87.3% | 82% | — |
-| Wind turbine | Autoencoder, 256 values | 93.6% | 69% | — |
-| Wind turbine | Autoencoder, 64 values | 98.2% | 46% | — |
-| Wind turbine | Autoencoder, 16 values | 99.4% | none | — |
-| Wind turbine | **Autoencoder, 2048 packed** | **59.0%** | **99.7%** | — |
-| CWRU | Rice, best exact codec | 35.7% | 100% | 5/5 |
-| CWRU | Autoencoder, 512 values | 87.3% | 68% | 4/5 |
-| CWRU | Autoencoder, 256 values | 93.6% | none | 1/5 |
-| CWRU | Autoencoder, 64 values | 98.2% | none | 1/5 |
-| CWRU | Autoencoder, 16 values | 99.4% | none | 1/5 |
-| CWRU | **Autoencoder, 2048 packed** | **52.4%** | **89%** | **5/5** |
+<table>
+  <thead>
+    <tr>
+      <th>Dataset</th>
+      <th>Method</th>
+      <th align="right">Removed</th>
+      <th align="right">Energy back</th>
+      <th align="right">Fault place</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="6">Wind turbine</td>
+      <td>Rice, best exact codec</td>
+      <td align="right">28.3%</td>
+      <td align="right">100%</td>
+      <td align="right">—</td>
+    </tr>
+    <tr>
+      <td>Autoencoder, 512 values</td>
+      <td align="right">87.3%</td>
+      <td align="right">82%</td>
+      <td align="right">—</td>
+    </tr>
+    <tr>
+      <td>Autoencoder, 256 values</td>
+      <td align="right">93.6%</td>
+      <td align="right">69%</td>
+      <td align="right">—</td>
+    </tr>
+    <tr>
+      <td>Autoencoder, 64 values</td>
+      <td align="right">98.2%</td>
+      <td align="right">46%</td>
+      <td align="right">—</td>
+    </tr>
+    <tr>
+      <td>Autoencoder, 16 values</td>
+      <td align="right">99.4%</td>
+      <td align="right">none</td>
+      <td align="right">—</td>
+    </tr>
+    <tr>
+      <td><strong>Autoencoder, 2048 packed</strong></td>
+      <td align="right"><strong>59.0%</strong></td>
+      <td align="right"><strong>99.7%</strong></td>
+      <td align="right">—</td>
+    </tr>
+    <tr>
+      <td rowspan="6">CWRU</td>
+      <td>Rice, best exact codec</td>
+      <td align="right">35.7%</td>
+      <td align="right">100%</td>
+      <td align="right">5/5</td>
+    </tr>
+    <tr>
+      <td>Autoencoder, 512 values</td>
+      <td align="right">87.3%</td>
+      <td align="right">68%</td>
+      <td align="right">4/5</td>
+    </tr>
+    <tr>
+      <td>Autoencoder, 256 values</td>
+      <td align="right">93.6%</td>
+      <td align="right">none</td>
+      <td align="right">1/5</td>
+    </tr>
+    <tr>
+      <td>Autoencoder, 64 values</td>
+      <td align="right">98.2%</td>
+      <td align="right">none</td>
+      <td align="right">1/5</td>
+    </tr>
+    <tr>
+      <td>Autoencoder, 16 values</td>
+      <td align="right">99.4%</td>
+      <td align="right">none</td>
+      <td align="right">1/5</td>
+    </tr>
+    <tr>
+      <td><strong>Autoencoder, 2048 packed</strong></td>
+      <td align="right"><strong>52.4%</strong></td>
+      <td align="right"><strong>89%</strong></td>
+      <td align="right"><strong>5/5</strong></td>
+    </tr>
+  </tbody>
+</table>
 
 The other exact codecs (zlib, delta, AR4, a tiny MLP) remove less than Rice and return every count. Shorter autoencoder codes are smaller files and worse recordings. On CWRU, codes of 256 values and shorter call every fault healthy. Rice is the comparison when the counts have to come back exactly.
 
