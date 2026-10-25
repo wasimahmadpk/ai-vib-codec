@@ -43,31 +43,31 @@ Same methods on both sets. Removed is versus the int16 file. Energy recovered is
       <td align="right">—</td>
     </tr>
     <tr>
-      <td>Autoencoder, 512 values</td>
+      <td>AE, 512 values</td>
       <td align="right">87.3%</td>
       <td align="right">82%</td>
       <td align="right">—</td>
     </tr>
     <tr>
-      <td>Autoencoder, 256 values</td>
+      <td>AE, 256 values</td>
       <td align="right">93.6%</td>
       <td align="right">69%</td>
       <td align="right">—</td>
     </tr>
     <tr>
-      <td>Autoencoder, 64 values</td>
+      <td>AE, 64 values</td>
       <td align="right">98.2%</td>
       <td align="right">46%</td>
       <td align="right">—</td>
     </tr>
     <tr>
-      <td>Autoencoder, 16 values</td>
+      <td>AE, 16 values</td>
       <td align="right">99.4%</td>
       <td align="right">none</td>
       <td align="right">—</td>
     </tr>
     <tr>
-      <td><strong>Autoencoder, 2048 packed</strong></td>
+      <td><strong>AE, 2048 packed</strong></td>
       <td align="right"><strong>59.0%</strong></td>
       <td align="right"><strong>99.7%</strong></td>
       <td align="right">—</td>
@@ -80,31 +80,31 @@ Same methods on both sets. Removed is versus the int16 file. Energy recovered is
       <td align="right">5/5</td>
     </tr>
     <tr>
-      <td>Autoencoder, 512 values</td>
+      <td>AE, 512 values</td>
       <td align="right">87.3%</td>
       <td align="right">68%</td>
       <td align="right">4/5</td>
     </tr>
     <tr>
-      <td>Autoencoder, 256 values</td>
+      <td>AE, 256 values</td>
       <td align="right">93.6%</td>
       <td align="right">none</td>
       <td align="right">1/5</td>
     </tr>
     <tr>
-      <td>Autoencoder, 64 values</td>
+      <td>AE, 64 values</td>
       <td align="right">98.2%</td>
       <td align="right">none</td>
       <td align="right">1/5</td>
     </tr>
     <tr>
-      <td>Autoencoder, 16 values</td>
+      <td>AE, 16 values</td>
       <td align="right">99.4%</td>
       <td align="right">none</td>
       <td align="right">1/5</td>
     </tr>
     <tr>
-      <td><strong>Autoencoder, 2048 packed</strong></td>
+      <td><strong>AE, 2048 packed</strong></td>
       <td align="right"><strong>52.4%</strong></td>
       <td align="right"><strong>89%</strong></td>
       <td align="right"><strong>5/5</strong></td>
