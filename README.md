@@ -31,9 +31,9 @@ Same methods on both sets. Removed is versus the int16 file. Energy back is how 
       <th>Method</th>
       <th align="right">Removed</th>
       <th align="right">Energy back</th>
-      <th align="right">Fault place</th>
       <th align="right">Encode (ms)</th>
       <th align="right">Decode (ms)</th>
+      <th align="right">Fault place</th>
     </tr>
   </thead>
   <tbody>
@@ -42,98 +42,98 @@ Same methods on both sets. Removed is versus the int16 file. Energy back is how 
       <td>Rice, best exact codec</td>
       <td align="right">28.3%</td>
       <td align="right">100%</td>
-      <td align="right">—</td>
       <td align="right">31.2</td>
       <td align="right">24.0</td>
+      <td align="right">—</td>
     </tr>
     <tr>
       <td>AE, 512 values</td>
       <td align="right">87.3%</td>
       <td align="right">82%</td>
-      <td align="right">—</td>
       <td align="right">0.83</td>
       <td align="right">0.55</td>
+      <td align="right">—</td>
     </tr>
     <tr>
       <td>AE, 256 values</td>
       <td align="right">93.6%</td>
       <td align="right">69%</td>
-      <td align="right">—</td>
       <td align="right">1.02</td>
       <td align="right">0.64</td>
+      <td align="right">—</td>
     </tr>
     <tr>
       <td>AE, 64 values</td>
       <td align="right">98.2%</td>
       <td align="right">46%</td>
-      <td align="right">—</td>
       <td align="right">0.99</td>
       <td align="right">0.64</td>
+      <td align="right">—</td>
     </tr>
     <tr>
       <td>AE, 16 values</td>
       <td align="right">99.4%</td>
       <td align="right">none</td>
-      <td align="right">—</td>
       <td align="right">1.09</td>
       <td align="right">0.67</td>
+      <td align="right">—</td>
     </tr>
     <tr>
       <td><strong>AE, 2048 packed</strong></td>
       <td align="right"><strong>59.0%</strong></td>
       <td align="right"><strong>99.7%</strong></td>
-      <td align="right">—</td>
       <td align="right"><strong>1.18</strong></td>
       <td align="right"><strong>0.71</strong></td>
+      <td align="right">—</td>
     </tr>
     <tr>
       <td rowspan="6">CWRU</td>
       <td>Rice, best exact codec</td>
       <td align="right">35.7%</td>
       <td align="right">100%</td>
-      <td align="right">5/5</td>
       <td align="right">214</td>
       <td align="right">157</td>
+      <td align="right">5/5</td>
     </tr>
     <tr>
       <td>AE, 512 values</td>
       <td align="right">87.3%</td>
       <td align="right">68%</td>
-      <td align="right">4/5</td>
       <td align="right">6.1</td>
       <td align="right">4.3</td>
+      <td align="right">4/5</td>
     </tr>
     <tr>
       <td>AE, 256 values</td>
       <td align="right">93.6%</td>
       <td align="right">none</td>
-      <td align="right">1/5</td>
       <td align="right">7.6</td>
       <td align="right">5.0</td>
+      <td align="right">1/5</td>
     </tr>
     <tr>
       <td>AE, 64 values</td>
       <td align="right">98.2%</td>
       <td align="right">none</td>
-      <td align="right">1/5</td>
       <td align="right">7.5</td>
       <td align="right">5.0</td>
+      <td align="right">1/5</td>
     </tr>
     <tr>
       <td>AE, 16 values</td>
       <td align="right">99.4%</td>
       <td align="right">none</td>
-      <td align="right">1/5</td>
       <td align="right">7.5</td>
       <td align="right">5.0</td>
+      <td align="right">1/5</td>
     </tr>
     <tr>
       <td><strong>AE, 2048 packed</strong></td>
       <td align="right"><strong>52.4%</strong></td>
       <td align="right"><strong>89%</strong></td>
-      <td align="right"><strong>5/5</strong></td>
       <td align="right"><strong>7.5</strong></td>
       <td align="right"><strong>4.2</strong></td>
+      <td align="right"><strong>5/5</strong></td>
     </tr>
   </tbody>
 </table>
