@@ -17,6 +17,7 @@ On the 448 test recordings it removes **59.0%** of the int16 file (6.56 bits/sam
 CWRU has its own 2048 run. Each block is weighted by its own energy, otherwise the quiet healthy file barely shows up in the loss. That checkpoint is not the turbine codec above.
 
 ```bash
+cd /Users/wasim/ai-vib-codec
 .venv/bin/python src/run_autoencoder.py --code-channels 16 --code-time 128 --side-info --pack-code
 ```
 
@@ -140,7 +141,11 @@ Same methods on both sets. Removed is versus the int16 file. Energy back is how 
 
 zlib, delta, AR4, and a small MLP remove less than Rice and still return every count. On CWRU, 256 values and shorter call every fault file healthy.
 
+`src/run_benchmark.py` loads the saved autoencoders, scores both test sets again, and writes `results/benchmark.md`. It does not train them. Point `--turbine-codec` or `--cwru-codec` at a new checkpoint and run the same command.
+
 ```bash
+cd /Users/wasim/ai-vib-codec
+.venv/bin/python src/run_benchmark.py
 .venv/bin/python src/run_baseline.py --data data/dataset02_f32.npz
 .venv/bin/python src/run_cwru_benchmark.py
 ```
