@@ -143,9 +143,13 @@ zlib, delta, AR4, and a small MLP remove less than Rice and still return every c
 
 `src/run_benchmark.py` loads the saved autoencoders, scores both test sets again, and writes `results/benchmark.md`. It does not train them. Point `--turbine-codec` or `--cwru-codec` at a new checkpoint and run the same command.
 
+`src/run_inference.py` is a separate command. It compresses one recording with the saved turbine codec and prints the packet size and the error. The default is a replay of the first held-out test recording. A new file is a float `.npy` plus its shaft speed. The recording is already finished, so the whole file is compressed at once.
+
 ```bash
 cd /Users/wasim/ai-vib-codec
 .venv/bin/python src/run_benchmark.py
+.venv/bin/python src/run_inference.py
+.venv/bin/python src/run_inference.py --signal recording.npy --rpm 1150
 .venv/bin/python src/run_baseline.py --data data/dataset02_f32.npz
 .venv/bin/python src/run_cwru_benchmark.py
 ```
