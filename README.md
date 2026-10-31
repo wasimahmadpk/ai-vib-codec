@@ -39,7 +39,7 @@ Same methods on both sets. Removed is versus the int16 file. Energy back is how 
   </thead>
   <tbody>
     <tr>
-      <td rowspan="6">Wind turbine</td>
+      <td rowspan="7">Wind turbine</td>
       <td>Rice, best exact codec</td>
       <td align="right">28.3%</td>
       <td align="right">100%</td>
@@ -52,6 +52,14 @@ Same methods on both sets. Removed is versus the int16 file. Energy back is how 
       <td align="right">87.3%</td>
       <td align="right">82%</td>
       <td align="right">0.83</td>
+      <td align="right">0.55</td>
+      <td align="right">—</td>
+    </tr>
+    <tr>
+      <td>AE, 1024 values</td>
+      <td align="right">74.8%</td>
+      <td align="right">93%</td>
+      <td align="right">0.77</td>
       <td align="right">0.55</td>
       <td align="right">—</td>
     </tr>
@@ -88,7 +96,7 @@ Same methods on both sets. Removed is versus the int16 file. Energy back is how 
       <td align="right">—</td>
     </tr>
     <tr>
-      <td rowspan="7">CWRU</td>
+      <td rowspan="8">CWRU</td>
       <td>Rice, best exact codec</td>
       <td align="right">35.7%</td>
       <td align="right">100%</td>
@@ -102,6 +110,14 @@ Same methods on both sets. Removed is versus the int16 file. Energy back is how 
       <td align="right">68%</td>
       <td align="right">6.1</td>
       <td align="right">4.3</td>
+      <td align="right">4/5</td>
+    </tr>
+    <tr>
+      <td>AE, 1024 values</td>
+      <td align="right">74.8%</td>
+      <td align="right">77%</td>
+      <td align="right">6.4</td>
+      <td align="right">4.4</td>
       <td align="right">4/5</td>
     </tr>
     <tr>

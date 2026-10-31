@@ -39,6 +39,7 @@ TURBINE_AE = (
     ("AE 64", Path("data/ae_64.pt")),
     ("AE 256", Path("data/ae_256.pt")),
     ("AE 512", Path("data/ae_512.pt")),
+    ("AE 1024", Path("data/ae_1024.pt")),
     ("AE 2048", Path("data/ae_2048.pt")),
 )
 CWRU_AE = (
@@ -46,6 +47,7 @@ CWRU_AE = (
     ("AE 64", Path("data/cwru_ae_64.pt")),
     ("AE 256", Path("data/cwru_ae_256.pt")),
     ("AE 512", Path("data/cwru_ae_512.pt")),
+    ("AE 1024", Path("data/cwru_ae_1024.pt")),
     ("AE 2048", Path("data/cwru_ae_2048.pt")),
 )
 

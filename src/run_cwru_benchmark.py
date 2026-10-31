@@ -55,6 +55,7 @@ AE_LAYOUTS = (
     (8, 8),
     (32, 8),
     (16, 32),
+    (8, 128),
     (16, 128),
 )
 PLACES = ("normal", "inner", "ball", "outer")
@@ -652,7 +653,7 @@ def main() -> None:
     )
     class_rows.append(rms_only)
     print_classes(rms_only)
-    for name in ("original", "int16", "AE 16", "AE 64", "AE 256", "AE 512", "AE 2048", "turbine AE, no retrain"):
+    for name in ("original", "int16", "AE 16", "AE 64", "AE 256", "AE 512", "AE 1024", "AE 2048", "turbine AE, no retrain"):
         if name not in reconstructions:
             continue
         result = class_result(name, test_rows, reconstructions[name], models)
