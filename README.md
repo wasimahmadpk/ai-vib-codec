@@ -23,7 +23,7 @@ cd /Users/wasim/ai-vib-codec
 
 ## Comparison
 
-Same methods on both sets. Removed is versus the int16 file. Energy back is how much of the recording returns. 0% means silence. Fault place is the five held-out CWRU files. The 4/5 miss is the healthy file. Encode and decode are milliseconds for one recording: 1.28 s on the turbine, about 10 s on CWRU.
+Same methods on both sets. Removed is versus the int16 file. Energy back is how much of the recording returns. 0% means silence. Fault place is the five held-out CWRU files. The 4/5 miss is the healthy file. Encode and decode are milliseconds for one recording: 1.28 s on the turbine, about 10 s on CWRU. The last CWRU row sends six features a second and does not rebuild the recording, so energy and decode are blank.
 
 <table>
   <thead>
@@ -88,7 +88,7 @@ Same methods on both sets. Removed is versus the int16 file. Energy back is how 
       <td align="right">—</td>
     </tr>
     <tr>
-      <td rowspan="6">CWRU</td>
+      <td rowspan="7">CWRU</td>
       <td>Rice, best exact codec</td>
       <td align="right">35.7%</td>
       <td align="right">100%</td>
@@ -136,10 +136,18 @@ Same methods on both sets. Removed is versus the int16 file. Energy back is how 
       <td align="right"><strong>4.2</strong></td>
       <td align="right"><strong>5/5</strong></td>
     </tr>
+    <tr>
+      <td>Six features, exact</td>
+      <td align="right">99.8%</td>
+      <td align="right">—</td>
+      <td align="right">3.6</td>
+      <td align="right">—</td>
+      <td align="right">5/5</td>
+    </tr>
   </tbody>
 </table>
 
-zlib, delta, AR4, and a small MLP remove less than Rice and still return every count. On CWRU, 256 values and shorter call every fault file healthy.
+zlib, delta, AR4, and a small MLP remove less than Rice and still return every count. On CWRU, 256 values and shorter call every fault file healthy. The six features are rms, kurtosis, crest factor, and the inner, outer, and ball lines, sent as plain numbers.
 
 `src/run_benchmark.py` loads the saved autoencoders, scores both test sets again, and writes `results/benchmark.md`. It does not train them. Point `--turbine-codec` or `--cwru-codec` at a new checkpoint and run the same command.
 
