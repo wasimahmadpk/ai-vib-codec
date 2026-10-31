@@ -48,6 +48,30 @@ Same methods on both sets. Removed is versus the int16 file. Energy back is how 
       <td align="right">—</td>
     </tr>
     <tr>
+      <td>AE, 16 values</td>
+      <td align="right">99.4%</td>
+      <td align="right">none</td>
+      <td align="right">1.09</td>
+      <td align="right">0.67</td>
+      <td align="right">—</td>
+    </tr>
+    <tr>
+      <td>AE, 64 values</td>
+      <td align="right">98.2%</td>
+      <td align="right">46%</td>
+      <td align="right">0.99</td>
+      <td align="right">0.64</td>
+      <td align="right">—</td>
+    </tr>
+    <tr>
+      <td>AE, 256 values</td>
+      <td align="right">93.6%</td>
+      <td align="right">69%</td>
+      <td align="right">1.02</td>
+      <td align="right">0.64</td>
+      <td align="right">—</td>
+    </tr>
+    <tr>
       <td>AE, 512 values</td>
       <td align="right">87.3%</td>
       <td align="right">82%</td>
@@ -61,30 +85,6 @@ Same methods on both sets. Removed is versus the int16 file. Energy back is how 
       <td align="right">93%</td>
       <td align="right">0.77</td>
       <td align="right">0.55</td>
-      <td align="right">—</td>
-    </tr>
-    <tr>
-      <td>AE, 256 values</td>
-      <td align="right">93.6%</td>
-      <td align="right">69%</td>
-      <td align="right">1.02</td>
-      <td align="right">0.64</td>
-      <td align="right">—</td>
-    </tr>
-    <tr>
-      <td>AE, 64 values</td>
-      <td align="right">98.2%</td>
-      <td align="right">46%</td>
-      <td align="right">0.99</td>
-      <td align="right">0.64</td>
-      <td align="right">—</td>
-    </tr>
-    <tr>
-      <td>AE, 16 values</td>
-      <td align="right">99.4%</td>
-      <td align="right">none</td>
-      <td align="right">1.09</td>
-      <td align="right">0.67</td>
       <td align="right">—</td>
     </tr>
     <tr>
@@ -105,6 +105,30 @@ Same methods on both sets. Removed is versus the int16 file. Energy back is how 
       <td align="right">5/5</td>
     </tr>
     <tr>
+      <td>AE, 16 values</td>
+      <td align="right">99.4%</td>
+      <td align="right">none</td>
+      <td align="right">7.5</td>
+      <td align="right">5.0</td>
+      <td align="right">1/5</td>
+    </tr>
+    <tr>
+      <td>AE, 64 values</td>
+      <td align="right">98.2%</td>
+      <td align="right">none</td>
+      <td align="right">7.5</td>
+      <td align="right">5.0</td>
+      <td align="right">1/5</td>
+    </tr>
+    <tr>
+      <td>AE, 256 values</td>
+      <td align="right">93.6%</td>
+      <td align="right">none</td>
+      <td align="right">7.6</td>
+      <td align="right">5.0</td>
+      <td align="right">1/5</td>
+    </tr>
+    <tr>
       <td>AE, 512 values</td>
       <td align="right">87.3%</td>
       <td align="right">68%</td>
@@ -119,30 +143,6 @@ Same methods on both sets. Removed is versus the int16 file. Energy back is how 
       <td align="right">6.4</td>
       <td align="right">4.4</td>
       <td align="right">4/5</td>
-    </tr>
-    <tr>
-      <td>AE, 256 values</td>
-      <td align="right">93.6%</td>
-      <td align="right">none</td>
-      <td align="right">7.6</td>
-      <td align="right">5.0</td>
-      <td align="right">1/5</td>
-    </tr>
-    <tr>
-      <td>AE, 64 values</td>
-      <td align="right">98.2%</td>
-      <td align="right">none</td>
-      <td align="right">7.5</td>
-      <td align="right">5.0</td>
-      <td align="right">1/5</td>
-    </tr>
-    <tr>
-      <td>AE, 16 values</td>
-      <td align="right">99.4%</td>
-      <td align="right">none</td>
-      <td align="right">7.5</td>
-      <td align="right">5.0</td>
-      <td align="right">1/5</td>
     </tr>
     <tr>
       <td><strong>AE, 2048 packed</strong></td>
