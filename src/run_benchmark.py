@@ -24,6 +24,7 @@ from autoencoder import open_codec
 from run_autoencoder import measure_test
 from run_baseline import run_method
 from signals import load_arrays, split_by_time
+from terminal_table import print_table
 
 ROOT = Path(__file__).resolve().parent.parent
 BLOCK = 2048
@@ -210,6 +211,28 @@ def cell(value, digits: int) -> str:
     return f"{value:.{digits}f}"
 
 
+CHOSEN = "AE 2048 packed"
+
+
+def show_table(title: str, methods: list[dict], fault: bool, note: str = "") -> None:
+    headers = ["Method", "Removed", "Energy back", "Encode ms", "Decode ms"]
+    if fault:
+        headers.append("Fault place")
+    rows = []
+    for method in methods:
+        row = [
+            method["name"],
+            f"{method['removed']:.1f}%",
+            f"{method['energy']:.1f}%",
+            f"{method['encode_ms']:.2f}",
+            f"{method['decode_ms']:.2f}",
+        ]
+        if fault:
+            row.append(str(method.get("fault_place", "—")))
+        rows.append(row)
+    print_table(title, headers, rows, highlight={CHOSEN}, note=note)
+
+
 def markdown_table(methods: list[dict], fault: bool) -> str:
     headers = ["Method", "Removed", "Energy back", "Encode (ms)", "Decode (ms)"]
     if fault:
@@ -306,8 +329,20 @@ def main() -> None:
         "methods": [summary(item) for item in bearing_methods],
     }
     write_report(args.output, turbine, bearing)
-    print(f"wrote {args.output}", flush=True)
-    print(f"wrote {args.output.with_suffix('.json')}", flush=True)
+    show_table(
+        f"Wind turbine  ·  {len(test_idx)} test recordings",
+        turbine_methods,
+        fault=False,
+        note="zlib float32 is versus the float32 file. Every other row is versus int16.",
+    )
+    show_table(
+        f"CWRU  ·  {len(test_names)} held-out files",
+        bearing_methods,
+        fault=True,
+        note="The exact codecs share one reconstruction, so they share the fault-place score.",
+    )
+    print(f"\nwrote {args.output}")
+    print(f"wrote {args.output.with_suffix('.json')}")
 
 
 if __name__ == "__main__":

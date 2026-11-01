@@ -16,6 +16,7 @@ import numpy as np
 
 from autoencoder import BLOCK, open_codec
 from signals import main_peak, split_by_time
+from terminal_table import print_table
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = Path("data/dataset02_f32.npz")
@@ -150,11 +151,32 @@ def main() -> None:
     samples, rpm = prepare(samples, rpm)
     codec = open_codec(args.codec)
     packet, restored, encode_s, decode_s = compress(codec, samples, rpm)
-    text = render(source, rpm, args.codec, measure(samples, restored, packet, rpm), encode_s, decode_s)
+    stats = measure(samples, restored, packet, rpm)
+    text = render(source, rpm, args.codec, stats, encode_s, decode_s)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(text)
-    print(text, end="")
-    print(f"wrote {args.output}")
+    print_table(
+        "Inference  ·  one recording",
+        ["", ""],
+        [
+            ["Source", source],
+            ["Shaft speed", f"{rpm:.2f} rpm"],
+            ["Codec", str(args.codec)],
+            ["Samples", f"{int(stats['samples'])} in {int(stats['blocks'])} blocks"],
+            ["Packet", f"{int(stats['packet_bytes'])} bytes"],
+            ["int16 file", f"{int(stats['raw_bytes'])} bytes"],
+            ["Removed", f"{stats['removed']:.1f}%"],
+            ["Energy back", f"{stats['energy']:.1f}%"],
+            ["RMSE", f"{stats['rmse']:.3f} g"],
+            ["Peak error", f"{stats['peak']:.3f} g"],
+            ["Loudest tone", f"{stats['tone_hz']:.1f} Hz off"],
+            ["Encode", f"{encode_s * 1000:.2f} ms"],
+            ["Decode", f"{decode_s * 1000:.2f} ms"],
+        ],
+        highlight={"Removed", "Energy back"},
+        numeric=False,
+    )
+    print(f"\nwrote {args.output}")
 
 
 if __name__ == "__main__":
