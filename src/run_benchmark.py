@@ -23,7 +23,7 @@ import zlib_raw
 from autoencoder import open_codec
 from run_autoencoder import measure_test
 from run_baseline import run_method
-from signals import load_arrays, split_by_time
+from signals import ensure_dataset, load_arrays, split_by_time
 from terminal_table import print_table
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -300,9 +300,12 @@ def main() -> None:
     args = parser.parse_args()
     os.chdir(ROOT)
 
-    require(args.data)
     require(args.turbine_codec)
     require(args.cwru_codec)
+    try:
+        ensure_dataset(args.data)
+    except FileNotFoundError:
+        raise SystemExit(f"missing dataset {args.data}")
     years, rpm, signal = load_arrays(args.data)
     train_idx, validation_idx, test_idx = split_by_time(years)
     counts = cwru.to_int16(signal)

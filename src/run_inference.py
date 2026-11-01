@@ -9,13 +9,14 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
 from pathlib import Path
 from time import perf_counter
 
 import numpy as np
 
 from autoencoder import BLOCK, open_codec
-from signals import main_peak, split_by_time
+from signals import ensure_dataset, main_peak, split_by_time
 from terminal_table import print_table
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -125,6 +126,45 @@ def incoming(path: Path, rpm: float) -> tuple[np.ndarray, float, str]:
     return samples, rpm, str(path)
 
 
+def ask_recording(data: Path) -> tuple[np.ndarray, float, str]:
+    """Ask which row or file to compress. Enter keeps the first held-out test row."""
+    stored = np.load(data, mmap_mode="r")
+    _train, _validation, test_idx = split_by_time(np.asarray(stored["years"]))
+    test_rows = {int(row) for row in test_idx}
+    first, last = min(test_rows), max(test_rows)
+    print()
+    print("Which recording?")
+    print(f"Press Enter for row {first}, the first held-out test recording.")
+    print(f"Or type a test row from {first} to {last}.")
+    print("Or type the path of a float .npy file.")
+    while True:
+        try:
+            answer = input("Choice: ").strip()
+        except EOFError:
+            raise SystemExit("no choice given")
+        if answer == "":
+            return replay(data, None)
+        if answer.lstrip("-").isdigit():
+            row = int(answer)
+            if row not in test_rows:
+                print(f"Row {row} is not a test recording. Type a row from {first} to {last}.")
+                continue
+            return replay(data, row)
+        path = Path(answer)
+        if path.is_file():
+            try:
+                rpm_text = input("Shaft speed (rpm): ").strip()
+            except EOFError:
+                raise SystemExit("a new recording needs a shaft speed")
+            try:
+                rpm = float(rpm_text)
+            except ValueError:
+                print("Shaft speed must be a number.")
+                continue
+            return incoming(path, rpm)
+        print(f"Type a test row from {first} to {last}, a path to an .npy file, or press Enter.")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Compress one recording with the saved model.")
     parser.add_argument("--codec", type=Path, default=CODEC)
@@ -144,9 +184,14 @@ def main() -> None:
     if args.signal is not None:
         samples, rpm, source = incoming(args.signal, args.rpm)
     else:
-        if not args.data.is_file():
+        try:
+            ensure_dataset(args.data)
+        except FileNotFoundError:
             raise SystemExit(f"missing dataset {args.data}")
-        samples, rpm, source = replay(args.data, args.index)
+        if args.index is None and sys.stdin.isatty():
+            samples, rpm, source = ask_recording(args.data)
+        else:
+            samples, rpm, source = replay(args.data, args.index)
 
     samples, rpm = prepare(samples, rpm)
     codec = open_codec(args.codec)

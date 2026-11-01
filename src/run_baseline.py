@@ -14,7 +14,7 @@ import mlp_predictor
 import zlib_int
 import zlib_raw
 from fixed_point import to_g, to_int16
-from signals import CACHE, load_arrays, split_by_time
+from signals import CACHE, ensure_dataset, load_arrays, load_subset, split_by_time
 
 BLOCK = 2048
 
@@ -106,7 +106,15 @@ def main() -> None:
     parser.add_argument("--mlp-epochs", type=int, default=30)
     args = parser.parse_args()
 
-    years, rpm, samples = load_arrays(args.data)
+    data = Path(args.data)
+    if not data.is_file() and data.resolve() == CACHE.resolve():
+        load_subset(data)
+    elif not data.is_file():
+        try:
+            ensure_dataset(data)
+        except FileNotFoundError:
+            raise SystemExit(f"missing dataset {data}")
+    years, rpm, samples = load_arrays(data)
     train_idx, validation_idx, test_idx = split_by_time(years)
     float32 = samples.astype("<f4")
     counts = to_int16(samples)

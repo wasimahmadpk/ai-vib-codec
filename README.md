@@ -8,6 +8,8 @@ Lab-motor bearing, CWRU slice: 18 files, 4 healthy and 14 faulty, inner race, ba
 
 Code is in `src/`. `notebooks/turbine_eda.ipynb` looks at the Luleå wind-turbine file. `notebooks/cwru_eda.ipynb` looks at the lab-motor bearing set. `data/` and `results/` stay off git.
 
+A first run fills `data/` when the files are missing. A turbine command downloads [DATASET02.csv](https://api.researchdata.se/dataset/2024-248/1/file/data/DATASET02.csv) (about 850 MB) and stores `data/dataset02_f32.npz`. A lab-motor command downloads the 18 Case Western `.mat` files into `data/cwru/`. A file that is already there is left alone.
+
 ## Chosen codec
 
 One autoencoder: 2,048 int8 values (16 channels by 128 steps), zlib-packed, plus 8 bytes per block for the order-35 tone and the single largest sample. The encoder is a small 1D conv, 18 KiB. Shaft speed and the weights are shared, so they stay out of the packet. An old packet only decodes with this model.

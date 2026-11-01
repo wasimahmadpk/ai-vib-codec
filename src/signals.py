@@ -111,12 +111,61 @@ def load_arrays(path: Path = CACHE):
     return years, rpm, signal
 
 
+def _report_download(block: int, block_size: int, total: int, state: dict) -> None:
+    got = block * block_size
+    step = 20_000_000
+    if got - state["last"] < step and (total <= 0 or got < total):
+        return
+    state["last"] = got
+    if total > 0:
+        print(f"  {min(got, total) / 1e6:.0f} / {total / 1e6:.0f} MB", flush=True)
+    else:
+        print(f"  {got / 1e6:.0f} MB", flush=True)
+
+
+def ensure_csv(csv_path: Path = CSV_PATH) -> Path:
+    """Return data/DATASET02.csv, downloading it when the local file is missing."""
+    expected = None
+    try:
+        expected = csv_size(URL)
+    except OSError:
+        expected = None
+    if csv_path.is_file() and csv_path.stat().st_size > 0:
+        size = csv_path.stat().st_size
+        if expected is None or size == expected:
+            return csv_path
+        print(
+            f"{csv_path} is {size:,} bytes. "
+            f"The file at the source is {expected:,} bytes. Downloading it again."
+        )
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    partial = csv_path.with_name(csv_path.name + ".part")
+    print(f"Downloading {URL}")
+    print(f"into {csv_path}")
+    state = {"last": 0}
+
+    def report(block: int, block_size: int, total: int) -> None:
+        _report_download(block, block_size, total, state)
+
+    try:
+        urllib.request.urlretrieve(URL, partial, reporthook=report)
+    except OSError:
+        partial.unlink(missing_ok=True)
+        raise
+    if expected is not None and partial.stat().st_size != expected:
+        got = partial.stat().st_size
+        partial.unlink(missing_ok=True)
+        raise RuntimeError(f"download stopped at {got:,} bytes, expected {expected:,}")
+    partial.replace(csv_path)
+    print(f"wrote {csv_path}")
+    return csv_path
+
+
 def load_full(cache: Path = FULL_CACHE, csv_path: Path = CSV_PATH):
     """Return every DATASET02 recording as years, rpm, and float32 samples."""
-    if cache.exists():
+    if cache.is_file():
         return load_arrays(cache)
-    if not csv_path.exists():
-        raise FileNotFoundError(csv_path)
+    ensure_csv(csv_path)
 
     with csv_path.open("rb") as handle:
         n = sum(1 for line in handle if line.strip())
@@ -146,6 +195,19 @@ def load_full(cache: Path = FULL_CACHE, csv_path: Path = CSV_PATH):
     np.savez(cache, years=years, rpm=rpm, signal=signal)
     print(f"wrote {cache} ({n} segments)")
     return years, rpm, signal
+
+
+def ensure_dataset(cache: Path = FULL_CACHE) -> Path:
+    """Return the full turbine cache, downloading DATASET02.csv when it is absent.
+
+    A path other than data/dataset02_f32.npz is left untouched and must already exist.
+    """
+    if cache.is_file():
+        return cache
+    if cache.resolve() != FULL_CACHE.resolve():
+        raise FileNotFoundError(cache)
+    load_full(cache)
+    return cache
 
 
 def split_by_time(years: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
