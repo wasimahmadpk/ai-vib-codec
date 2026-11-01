@@ -12,9 +12,9 @@ A first run fills `data/` when the files are missing. A turbine command download
 
 ## Setup
 
-From the project folder, once:
-
 ```bash
+git clone https://github.com/wasimahmadpk/ai-vib-codec.git
+cd ai-vib-codec
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 ```
