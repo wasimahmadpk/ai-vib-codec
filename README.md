@@ -10,6 +10,17 @@ Code is in `src/`. `notebooks/turbine_eda.ipynb` looks at the Luleå wind-turbin
 
 A first run fills `data/` when the files are missing. A turbine command downloads [DATASET02.csv](https://api.researchdata.se/dataset/2024-248/1/file/data/DATASET02.csv) (about 850 MB) and stores `data/dataset02_f32.npz`. A lab-motor command downloads the 18 Case Western `.mat` files into `data/cwru/`. A file that is already there is left alone.
 
+## Setup
+
+From the project folder, once:
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+```
+
+That installs numpy, scipy, matplotlib, jupyter, ipykernel, and torch. The commands below use `.venv/bin/python`.
+
 ## Chosen codec
 
 One autoencoder: 2,048 int8 values (16 channels by 128 steps), zlib-packed, plus 8 bytes per block for the order-35 tone and the single largest sample. The encoder is a small 1D conv, 18 KiB. Shaft speed and the weights are shared, so they stay out of the packet. An old packet only decodes with this model.
@@ -19,7 +30,6 @@ On the 448 test recordings it removes **59.0%** of the int16 file (6.56 bits/sam
 CWRU has its own 2048 run. Each block is weighted by its own energy, otherwise the quiet healthy file barely shows up in the loss. That checkpoint is not the turbine codec above.
 
 ```bash
-cd /Users/wasim/ai-vib-codec
 .venv/bin/python src/run_autoencoder.py --code-channels 16 --code-time 128 --side-info --pack-code
 ```
 
@@ -172,7 +182,6 @@ zlib, delta, AR4, and a small MLP remove less than Rice and still return every c
 `src/run_inference.py` is a separate command. It compresses one recording with the saved turbine codec and prints the packet size and the error. The default is a replay of the first held-out test recording. A new file is a float `.npy` plus its shaft speed. The recording is already finished, so the whole file is compressed at once.
 
 ```bash
-cd /Users/wasim/ai-vib-codec
 .venv/bin/python src/run_benchmark.py
 .venv/bin/python src/run_inference.py
 .venv/bin/python src/run_inference.py --signal recording.npy --rpm 1150
