@@ -59,7 +59,7 @@ Lab-motor checkpoints: `data/cwru_ae_16.pt`, `cwru_ae_64.pt`, `cwru_ae_256.pt`, 
 
 One autoencoder: 2,048 int8 values (16 channels by 128 steps), zlib-packed, plus 8 bytes per block. Those 8 bytes are the order-35 gear tone, as two float16 coefficients, and the single largest sample, as its position and a float16 value. The encoder is a small 1D conv, 18 KiB. Shaft speed and the weights stay out of the packet.
 
-On the 448 test recordings it removes **59.0%** of the int16 file (6.56 bits/sample) and returns **99.7%** of the energy. RMSE is 0.033 g. The loudest tone is exact. Sharp peaks are still about 0.7 g off.
+On the 448 test recordings it removes **59.0%** of the int16 file (6.56 bits/sample) and returns **99.7%** of the signal power. That energy figure is `100 × (1 − MSE / mean(sample²))`. The same error is an RMSE of 0.033 g, about 5.5% of the signal RMS. The loudest tone is exact. Sharp peaks are still about 0.7 g off, and one sample is too small a share of the power to move the energy percentage.
 
 Train that turbine codec with:
 
@@ -78,7 +78,7 @@ CWRU has its own 2048 run. Each block is weighted by its own energy, otherwise t
 
 ## Comparison
 
-Same methods on both sets. Removed is versus the int16 file. Energy back is how much of the recording returns. 0% would be silence. Fault place is how many of the five held-out CWRU files are still named. The 4/5 miss is the healthy file. Encode and decode are milliseconds for one recording: 1.28 s on the turbine, about 10 s on CWRU. The last CWRU row sends six features a second and does not rebuild the recording, so energy and decode are blank.
+Same methods on both sets. Removed is the packet size versus the int16 file. Energy back is recovered signal power, `100 × (1 − MSE / mean(sample²))`. A 10% RMSE still scores about 99% on that scale, and 0% is a silent rebuild. Fault place is how many of the five held-out CWRU files are still named. The 4/5 miss is the healthy file. Encode and decode are milliseconds for one recording: 1.28 s on the turbine, about 10 s on CWRU. The last CWRU row sends six features a second and does not rebuild the recording, so energy and decode are blank.
 
 <table>
   <thead>
